@@ -165,7 +165,7 @@ function! s:RandomName()
         " creates a file like this: `2019-11-12-10-27-10.png`
         " the filesystem on Windows does not allow : character.
     else
-        let l:new_random = strftime("%Y-%m-%d-%H-%M-%S")
+        let l:new_random = strftime("%Y%m%d%H%M%S") " Pasted_image_20211110230243.png
     endif
     return l:new_random
 endfunction
@@ -193,6 +193,14 @@ function! g:LatexPasteImage(relpath)
     execute "normal! ve\<C-g>"
 endfunction
 
+function! g:ObsidianPasteImage(relpath)
+    execute "normal! i![[" .  a:relpath . "|6" 
+    let ipos = getcurpos()
+    execute "normal! a" . "00]]"
+    call setpos('.', ipos)
+    execute "normal! v"
+endfunction
+
 function! g:EmptyPasteImage(relpath)
     execute "normal! i" . a:relpath 
 endfunction
@@ -216,6 +224,14 @@ function! mdip#MarkdownClipboardImage()
     let tmpfile = s:SaveFileTMP(workdir, g:mdip_tmpname)
     if tmpfile == 1
         return
+    elseif g:mdip_obsidian_wikilink_mode == 1
+        " let relpath = s:SaveNewFile(g:mdip_imgdir, tmpfile)
+        let extension = split(tmpfile, '\.')[-1]
+        let relpath = g:mdip_tmpname . '.' . extension
+
+        if call(get(g:, 'PasteImageFunction'), [relpath])
+            return
+        endif
     else
         " let relpath = s:SaveNewFile(g:mdip_imgdir, tmpfile)
         let extension = split(tmpfile, '\.')[-1]
@@ -241,5 +257,5 @@ if !exists('g:mdip_tmpname')
     let g:mdip_tmpname = 'tmp'
 endif
 if !exists('g:mdip_imgname')
-    let g:mdip_imgname = 'image'
+    let g:mdip_imgname = 'Pasted_Image'
 endif
